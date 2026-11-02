@@ -1,0 +1,49 @@
+name: Build Dyne APK
+
+on:
+  push:
+    paths:
+      - 'Dyne.zip'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Extract Dyne source
+        run: |
+          test -f Dyne.zip
+          unzip -q Dyne.zip -d .
+
+      - name: Build debug APK
+        working-directory: Dyne
+        run: |
+          gradle --version
+          gradle assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dyne-debug-apk
+          path: Dyne/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
