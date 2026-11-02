@@ -23,27 +23,44 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Prepare Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Extract Dyne source
         run: |
           test -f Dyne.zip
-          unzip -q Dyne.zip -d .
+          unzip -q Dyne.zip -d extracted
+          find extracted -maxdepth 3 -type f | head -100
+
+      - name: Locate project
+        id: project
+        run: |
+          PROJECT_DIR="$(find extracted -name settings.gradle -o -name settings.gradle.kts | head -1 | xargs dirname)"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "No Gradle Android project found in Dyne.zip"
+            exit 1
+          fi
+          echo "dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
-        working-directory: Dyne
+        working-directory: ${{ steps.project.outputs.dir }}
         run: |
-          gradle --version
-          gradle assembleDebug --stacktrace
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dyne-debug-apk
-          path: Dyne/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.project.outputs.dir }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
