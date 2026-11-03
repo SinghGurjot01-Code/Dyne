@@ -183,8 +183,8 @@ private fun AppearanceScreen(app: DyneApplication, s: DyneSettings) {
     }
     Section {
         Text("Compact island", fontWeight = FontWeight.Medium)
-        SliderRow("Width beyond camera (each side)", s.compactExtra, 28..80, " dp") { v -> app.settings.update { it.copy(compactExtra = v) } }
-        SliderRow("Height beyond camera", s.compactExtraH, 0..24, " dp") { v -> app.settings.update { it.copy(compactExtraH = v) } }
+        SliderRow("Width beyond camera (each side)", s.compactExtra, 4..64, " dp") { v -> app.settings.update { it.copy(compactExtra = v) } }
+        SliderRow("Height beyond camera", s.compactExtraH, 0..18, " dp") { v -> app.settings.update { it.copy(compactExtraH = v) } }
     }
     Section {
         Text("Expanded island", fontWeight = FontWeight.Medium)
@@ -194,7 +194,7 @@ private fun AppearanceScreen(app: DyneApplication, s: DyneSettings) {
     }
     TextButton({
         app.settings.update { it.copy(
-            expandedWidth = 350, expandedHeight = 170, compactExtra = 44, compactExtraH = 6, cornerRadius = 36
+            expandedWidth = 350, expandedHeight = 170, compactExtra = 20, compactExtraH = 2, cornerRadius = 36
         ) }
     }) { Text("Reset sizes") }
 }
