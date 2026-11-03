@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -127,7 +126,7 @@ private fun MusicPanel(e: IslandEvent.Music, controller: IslandController) {
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) { Title(e.title); Sub(e.artist) }
     }
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.height(8.dp))
     if (e.durationMs > 0) {
         val now by rememberElapsed(e.playing, 500)
         val pos = if (e.playing) e.positionMs + ((now - e.updatedAt) * e.speed).toLong() else e.positionMs
@@ -176,7 +175,7 @@ private fun CallPanel(e: IslandEvent.Call, app: DyneApplication) {
             }
         }
     }
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.height(8.dp))
     if (can) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(36.dp, Alignment.CenterHorizontally)) {
             Box(Modifier.graphicsLayer { rotationZ = 135f }) {
@@ -206,7 +205,7 @@ private fun TimerPanel(e: IslandEvent.Timer, app: DyneApplication) {
         RoundBtn(DyneIcons.Close, Color(0xFF26262C)) { app.timer.reset() }
     }
     if (e.totalMs > 0) {
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(8.dp))
         val frac by animateFloatAsState(if (e.totalMs > 0) (1f - rem.toFloat() / e.totalMs).coerceIn(0f, 1f) else 0f, tween(250), label = "tp")
         LinearProgressIndicator(
             progress = { frac }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
@@ -271,7 +270,7 @@ private fun ChargingPanel(e: IslandEvent.Charging) {
         }
         Text("${e.percent}%", color = color, fontSize = 26.sp, fontWeight = FontWeight.Light)
     }
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.height(8.dp))
     val frac by animateFloatAsState(e.percent / 100f, tween(400), label = "b")
     LinearProgressIndicator(
         progress = { frac }, modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
@@ -331,7 +330,7 @@ private fun BluetoothPanel(e: IslandEvent.Bluetooth) {
 @Composable
 private fun IdlePanel(app: DyneApplication, s: DyneSettings, c: IslandController) {
     val torchOn by app.torch.isOn.collectAsState()
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.height(8.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
         if (Feature.TORCH in s.features && app.torch.available) {
             RoundBtn(DyneIcons.Torch, if (torchOn) Yellow else Color(0xFF26262C), if (torchOn) Color.Black else Color.White, 44.dp) {
@@ -348,5 +347,5 @@ private fun IdlePanel(app: DyneApplication, s: DyneSettings, c: IslandController
             }
         }
     }
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.height(8.dp))
 }
