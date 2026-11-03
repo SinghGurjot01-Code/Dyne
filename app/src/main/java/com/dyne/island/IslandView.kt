@@ -9,8 +9,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import android.os.SystemClock
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
 import com.dyne.DyneApplication
 import com.dyne.overlay.IslandController
 import com.dyne.overlay.IslandGeometry
@@ -37,6 +40,18 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
         val expanded by controller.expanded.collectAsState()
         val event by controller.display.collectAsState()
         val charging by app.charging.isCharging.collectAsState()
+        val preview by produceState(initialValue = false, key1 = s.previewUntilElapsed) {
+            if (s.previewUntilElapsed > 0L) {
+                value = true
+                val remaining = s.previewUntilElapsed - SystemClock.elapsedRealtime()
+                if (remaining > 0L) delay(remaining)
+            }
+            value = false
+        }
+        val islandColor by animateColorAsState(
+            targetValue = if (preview) Color(0xFF00A8FF) else Color.Black,
+            animationSpec = tween(180), label = "appearancePreview"
+        )
 
         val compactW = g.cutoutW + s.compactExtra * 2
         val compactH = g.cutoutH + s.compactExtraH
@@ -54,10 +69,8 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
                 Modifier
                     .islandSize(w, h)
                     .graphicsLayer { shape = RoundedCornerShape(radius.value); clip = true }
-                    .background(Color.Black)
-                    .pointerInput(expanded) {
-                        detectTapGestures { if (!expanded) controller.expandManual() else controller.interact() }
-                    }
+                    .background(islandColor)
+                    .clickable { if (!expanded) controller.expandManual() else controller.interact() }
                     .pointerInput(Unit) {
                         var dx = 0f
                         var dy = 0f
