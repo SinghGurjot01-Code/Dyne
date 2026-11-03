@@ -32,6 +32,7 @@ class CallMonitor(private val ctx: Context, private val events: IslandEventManag
                 }
                 tm.registerTelephonyCallback(ctx.mainExecutor, cb)
                 modern = cb
+                handle(tm.callState)
             } else {
                 @Suppress("DEPRECATION")
                 val l = object : PhoneStateListener() {
@@ -41,6 +42,8 @@ class CallMonitor(private val ctx: Context, private val events: IslandEventManag
                 @Suppress("DEPRECATION")
                 tm.listen(l, PhoneStateListener.LISTEN_CALL_STATE)
                 legacy = l
+                @Suppress("DEPRECATION")
+                handle(tm.callState)
             }
         } catch (_: SecurityException) { /* READ_PHONE_STATE missing */ }
     }
