@@ -26,9 +26,9 @@ data class DyneSettings(
     val expandedWidth: Int = 350,
     val expandedHeight: Int = 170,
     /** Extra pill width on each side of the camera cutout (dp) */
-    val compactExtra: Int = 44,
+    val compactExtra: Int = 20,
     /** Extra pill height over the cutout height (dp) */
-    val compactExtraH: Int = 6,
+    val compactExtraH: Int = 2,
     val cornerRadius: Int = 36,
     val offsetX: Int = 0,
     val offsetY: Int = 0,
@@ -77,8 +77,8 @@ class SettingsRepository(context: Context) {
             timeoutSec = p.getInt("timeoutSec", d.timeoutSec),
             expandedWidth = p.getInt("expandedWidth", d.expandedWidth),
             expandedHeight = p.getInt("expandedHeight", d.expandedHeight),
-            compactExtra = p.getInt("compactExtra", d.compactExtra),
-            compactExtraH = p.getInt("compactExtraH", d.compactExtraH),
+            compactExtra = p.getInt("compactExtra", d.compactExtra).coerceIn(4, 64),
+            compactExtraH = p.getInt("compactExtraH", d.compactExtraH).coerceIn(0, 18),
             cornerRadius = p.getInt("cornerRadius", d.cornerRadius),
             offsetX = p.getInt("offsetX", d.offsetX),
             offsetY = p.getInt("offsetY", d.offsetY),
