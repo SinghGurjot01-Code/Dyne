@@ -194,27 +194,57 @@ private fun ArtImage(bmp: Bitmap?) {
 // ---------------- Call ----------------
 @Composable
 private fun CallPanel(e: IslandEvent.Call, app: DyneApplication) {
-    val can = app.permissions.hasAnswerCalls()
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Badge(DyneIcons.Call, Green)
+    val context = LocalContext.current
+    val canControl = app.permissions.hasAnswerCalls()
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Badge(DyneIcons.Call, if (e.ringing) Green else Color(0xFF55D6A0))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Title(if (e.ringing) "Incoming call" else "On call")
-            if (e.ringing) Sub("Ringing…") else {
+            Title(if (e.ringing) "Incoming call" else "Call in progress")
+            if (e.ringing) Sub("Someone is calling")
+            else {
                 val now by rememberElapsed(true, 1000)
                 Sub(formatElapsed(now - e.startedAt))
             }
         }
     }
-    Spacer(Modifier.height(8.dp))
-    if (can) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(36.dp, Alignment.CenterHorizontally)) {
-            Box(Modifier.graphicsLayer { rotationZ = 135f }) {
-                RoundBtn(DyneIcons.Call, Red, size = 42.dp) { app.calls.endOrDecline() }
+    Spacer(Modifier.height(14.dp))
+    if (e.ringing) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                RoundBtn(DyneIcons.Call, Red, size = 52.dp) {
+                    if (canControl) app.calls.endOrDecline()
+                    else runCatching { context.startActivity(app.permissions.appDetailsIntent()) }
+                }
+                Spacer(Modifier.height(5.dp))
+                Text("Decline", color = Color.White, fontSize = 11.sp)
             }
-            if (e.ringing) RoundBtn(DyneIcons.Call, Green, size = 42.dp) { app.calls.accept() }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                RoundBtn(DyneIcons.Call, Green, size = 52.dp) {
+                    if (canControl) app.calls.accept()
+                    else runCatching { context.startActivity(app.permissions.appDetailsIntent()) }
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(if (canControl) "Answer" else "Enable to answer", color = Color.White, fontSize = 11.sp)
+            }
         }
-    } else Sub("Allow call control in Dyne to answer or end calls here")
+        if (!canControl) {
+            Spacer(Modifier.height(4.dp))
+            Sub("Grant Phone permission in Dyne to control calls")
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                RoundBtn(DyneIcons.Call, Red, size = 48.dp) { app.calls.endOrDecline() }
+                Spacer(Modifier.height(4.dp))
+                Text("End call", color = Color.White, fontSize = 11.sp)
+            }
+        }
+    }
 }
 
 // ---------------- Timer ----------------
