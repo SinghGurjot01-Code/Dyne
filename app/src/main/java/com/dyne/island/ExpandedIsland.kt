@@ -124,29 +124,57 @@ private fun Badge(icon: ImageVector, color: Color) =
 // ---------------- Music ----------------
 @Composable
 private fun MusicPanel(e: IslandEvent.Music, controller: IslandController) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val now by rememberElapsed(e.playing, 500)
+    val position = if (e.playing) e.positionMs + ((now - e.updatedAt) * e.speed).toLong() else e.positionMs
+    val safeDuration = e.durationMs.coerceAtLeast(1L)
+    val progress = (position.toFloat() / safeDuration).coerceIn(0f, 1f)
+    val tc = e.controller.transportControls
+
+    // Album art and track metadata stay on one line, like the native Dynamic Island player.
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         ArtImage(e.art)
         Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) { Title(e.title); Sub(e.artist) }
+        Column(Modifier.weight(1f)) {
+            Title(e.title)
+            Spacer(Modifier.height(3.dp))
+            Sub(e.artist.ifBlank { " " })
+        }
+        Spacer(Modifier.width(8.dp))
+        Icon(DyneIcons.Music, null, tint = Color(0xFFB8B8C0), modifier = Modifier.size(19.dp))
     }
-    Spacer(Modifier.height(8.dp))
-    if (e.durationMs > 0) {
-        val now by rememberElapsed(e.playing, 500)
-        val pos = if (e.playing) e.positionMs + ((now - e.updatedAt) * e.speed).toLong() else e.positionMs
-        val frac by animateFloatAsState((pos.toFloat() / e.durationMs).coerceIn(0f, 1f), tween(500, easing = LinearEasing), label = "p")
+
+    if (e.durationMs > 0L) {
+        Spacer(Modifier.height(12.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(formatElapsed(position.coerceAtLeast(0L)), color = Dim, fontSize = 10.sp)
+            Text("-${formatElapsed((e.durationMs - position).coerceAtLeast(0L))}", color = Dim, fontSize = 10.sp)
+        }
+        Spacer(Modifier.height(3.dp))
         LinearProgressIndicator(
-            progress = { frac }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
             color = Color.White, trackColor = Color(0xFF3A3A40), gapSize = 0.dp, drawStopIndicator = {}
         )
-        Spacer(Modifier.height(4.dp))
     }
-    val tc = e.controller.transportControls
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
-        RoundBtn(DyneIcons.SkipPrev, Color.Transparent, if (e.canPrev) Color.White else Color(0xFF55555A)) { runCatching { tc.skipToPrevious() }; controller.interact() }
-        RoundBtn(if (e.playing) DyneIcons.Pause else DyneIcons.Play, Color.White, Color.Black, 44.dp) {
-            runCatching { if (e.playing) tc.pause() else tc.play() }; controller.interact()
+
+    Spacer(Modifier.height(10.dp))
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RoundBtn(DyneIcons.SkipPrev, Color.Transparent, if (e.canPrev) Color.White else Dim, 42.dp) {
+            if (e.canPrev) runCatching { tc.skipToPrevious() }
+            controller.interact()
         }
-        RoundBtn(DyneIcons.SkipNext, Color.Transparent, if (e.canNext) Color.White else Color(0xFF55555A)) { runCatching { tc.skipToNext() }; controller.interact() }
+        RoundBtn(if (e.playing) DyneIcons.Pause else DyneIcons.Play, Color.White, Color.Black, 48.dp) {
+            runCatching { if (e.playing) tc.pause() else tc.play() }
+            controller.interact()
+        }
+        RoundBtn(DyneIcons.SkipNext, Color.Transparent, if (e.canNext) Color.White else Dim, 42.dp) {
+            if (e.canNext) runCatching { tc.skipToNext() }
+            controller.interact()
+        }
     }
 }
 
