@@ -32,16 +32,21 @@ class TouchRootLayout(ctx: Context) : FrameLayout(ctx) {
     var onOutside: (() -> Unit)? = null
     var isCompact: (() -> Boolean)? = null
     var onCompactTap: (() -> Unit)? = null
+    private var compactGesture = false
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.action == MotionEvent.ACTION_OUTSIDE) {
             onOutside?.invoke()
             return true
         }
-        // The compact island has no child controls. Handle its tap at the window root so
-        // expansion does not depend on Compose pointer hit-testing in an overlay window.
-        if (isCompact?.invoke() == true) {
-            if (ev.action == MotionEvent.ACTION_UP) onCompactTap?.invoke()
+        // Expand immediately on DOWN and consume the complete gesture. Without this latch,
+        // the UP event can leak into the newly expanded Compose content and activate a child.
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            compactGesture = isCompact?.invoke() == true
+            if (compactGesture) onCompactTap?.invoke()
+        }
+        if (compactGesture) {
+            if (ev.action == MotionEvent.ACTION_UP || ev.action == MotionEvent.ACTION_CANCEL) compactGesture = false
             return true
         }
         return super.dispatchTouchEvent(ev)
