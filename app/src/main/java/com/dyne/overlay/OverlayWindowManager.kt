@@ -147,7 +147,7 @@ class OverlayWindowManager(
         val g = geometry.value
         val expanded = controller.expanded.value
         val ev = controller.display.value
-        val w = if (expanded) s.expandedWidth.toFloat() else g.cutoutW + s.compactExtra * 2
+        val w = if (expanded) maxExpandedIslandWidth(s.expandedWidth.toFloat(), (raw?.screenW?.toFloat() ?: 0f) / (raw?.density ?: 1f)) else g.cutoutW + s.compactExtra * 2
         val h = if (expanded) s.expandedHeight * heightFraction(ev?.type) else g.cutoutH + s.compactExtraH
         return (w + PAD * 2) to (h + PAD)
     }
