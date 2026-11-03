@@ -43,7 +43,7 @@ class BluetoothMonitor(
                     val connected = i.action == BluetoothDevice.ACTION_ACL_CONNECTED
                     val now = SystemClock.elapsedRealtime()
                     val prev = lastSeen[dev.address]
-                    if (prev != null && prev.first == connected && now - prev.second < 1500) return // debounce
+                    if (prev != null && prev.first == connected && now - prev.second < 1500) return
                     lastSeen[dev.address] = connected to now
                     val name = if (perms.hasBluetoothConnect()) runCatching { dev.name }.getOrNull() else null
                     events.flash(
@@ -55,13 +55,14 @@ class BluetoothMonitor(
     }
 
     override fun start() {
-        if (adapter == null) return // no Bluetooth hardware
+        if (adapter == null) return
         val f = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         if (perms.hasBluetoothConnect()) {
             f.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             f.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
         }
-        ContextCompat.registerReceiver(ctx, receiver, f, ContextCompat.RECEIVER_NOT_EXPORTED)
+        // These broadcasts are sent by privileged Bluetooth system components.
+        ContextCompat.registerReceiver(ctx, receiver, f, ContextCompat.RECEIVER_EXPORTED)
     }
 
     override fun stop() {
