@@ -208,7 +208,7 @@ class OverlayWindowManager(
         raw = if (rect != null) RawGeo(sw, sh, rect.exactCenterX(), rect.top, rect.width(), rect.height(), d, portrait, true)
         else RawGeo(sw, sh, sw / 2f, (8 * d).toInt(), (24 * d).toInt(), (24 * d).toInt(), d, portrait, false) // fallback
         val r = raw!!
-        geometry.value = IslandGeometry(r.cutoutW / d, r.cutoutH / d)
+        geometry.value = IslandGeometry(r.cutoutW / d, r.cutoutH / d, r.screenW / d, r.screenH / d)
     }
 
     @Suppress("DEPRECATION")
