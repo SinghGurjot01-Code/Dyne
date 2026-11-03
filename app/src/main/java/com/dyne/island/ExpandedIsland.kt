@@ -130,63 +130,63 @@ private fun MusicPanel(e: IslandEvent.Music, controller: IslandController) {
     val progress = (position.toFloat() / safeDuration).coerceIn(0f, 1f)
     val tc = e.controller.transportControls
 
-    // Album art and track metadata stay on one line, like the native Dynamic Island player.
+    // Layout follows the supplied reference: large artwork/title, prominent timeline,
+    // and oversized transport controls with a strong central play/pause action.
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         ArtImage(e.art)
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Title(e.title)
-            Spacer(Modifier.height(3.dp))
-            Sub(e.artist.ifBlank { " " })
+            Text(e.title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
+                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 21.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(e.artist.ifBlank { "Unknown artist" }, color = Color(0xFFB6B6BF),
+                fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
-        Icon(DyneIcons.Music, null, tint = Color(0xFFB8B8C0), modifier = Modifier.size(19.dp))
+        Icon(DyneIcons.Music, null, tint = Color(0xFFB8B8C0), modifier = Modifier.size(22.dp))
     }
 
     if (e.durationMs > 0L) {
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatElapsed(position.coerceAtLeast(0L)), color = Dim, fontSize = 10.sp)
-            Text("-${formatElapsed((e.durationMs - position).coerceAtLeast(0L))}", color = Dim, fontSize = 10.sp)
+            Text(formatElapsed(position.coerceAtLeast(0L)), color = Color(0xFFB6B6BF), fontSize = 12.sp)
+            Text("-${formatElapsed((e.durationMs - position).coerceAtLeast(0L))}", color = Color(0xFFB6B6BF), fontSize = 12.sp)
         }
-        Spacer(Modifier.height(3.dp))
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
-            color = Color.White, trackColor = Color(0xFF3A3A40), gapSize = 0.dp, drawStopIndicator = {}
-        )
+        Spacer(Modifier.height(5.dp))
+        Box(Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF38383F))) {
+            Box(Modifier.fillMaxWidth(progress).height(7.dp).clip(RoundedCornerShape(8.dp)).background(Color.White))
+        }
     }
 
-    Spacer(Modifier.height(10.dp))
+    Spacer(Modifier.height(14.dp))
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RoundBtn(DyneIcons.SkipPrev, Color.Transparent, if (e.canPrev) Color.White else Dim, 42.dp) {
+        RoundBtn(DyneIcons.SkipPrev, Color.Transparent, if (e.canPrev) Color.White else Dim, 60.dp) {
             if (e.canPrev) runCatching { tc.skipToPrevious() }
             controller.interact()
         }
-        RoundBtn(if (e.playing) DyneIcons.Pause else DyneIcons.Play, Color.White, Color.Black, 48.dp) {
+        RoundBtn(if (e.playing) DyneIcons.Pause else DyneIcons.Play, Color.White, Color.Black, 76.dp) {
             runCatching { if (e.playing) tc.pause() else tc.play() }
             controller.interact()
         }
-        RoundBtn(DyneIcons.SkipNext, Color.Transparent, if (e.canNext) Color.White else Dim, 42.dp) {
+        RoundBtn(DyneIcons.SkipNext, Color.Transparent, if (e.canNext) Color.White else Dim, 60.dp) {
             if (e.canNext) runCatching { tc.skipToNext() }
             controller.interact()
         }
     }
 }
-
 @Composable
 private fun ArtImage(bmp: Bitmap?) {
     Crossfade(bmp, animationSpec = tween(250), label = "art") { b ->
-        val mod = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp))
+        val mod = Modifier.size(64.dp).clip(RoundedCornerShape(14.dp))
         if (b != null) {
             val ib = remember(b) { b.asImageBitmap() }
             Image(ib, null, mod, contentScale = ContentScale.Crop)
         } else Box(mod.background(Color(0xFF26262C)), Alignment.Center) {
-            Icon(DyneIcons.Music, null, tint = Dim, modifier = Modifier.size(26.dp)) // missing artwork
+            Icon(DyneIcons.Music, null, tint = Dim, modifier = Modifier.size(30.dp)) // missing artwork
         }
     }
 }
