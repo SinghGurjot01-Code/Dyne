@@ -36,6 +36,14 @@ jobs:
           unzip -q Dyne.zip -d extracted
           find extracted -maxdepth 3 -type f | head -100
 
+      - name: Inspect Kotlin imports
+        run: |
+          find extracted -name 'ExpandedIsland.kt' -o -name 'IslandAnimations.kt' | while read f; do
+            echo "===== $f ====="
+            sed -n '1,45p' "$f"
+            grep -n -E 'weight|VisibilityThreshold' "$f" | head -30
+          done
+
       - name: Locate project
         id: project
         run: |
