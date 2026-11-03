@@ -356,10 +356,11 @@ private fun IdlePanel(app: DyneApplication, s: DyneSettings, c: IslandController
         }
         if (Feature.BLUETOOTH in s.features) {
             RoundBtn(DyneIcons.Bluetooth, Color(0xFF26262C), Blue, 42.dp) {
-                val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    Intent(Settings.Panel.ACTION_BLUETOOTH)
-                } else Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
-                runCatching { ctx.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                // Android exposes Bluetooth controls through the system settings activity;
+                // direct adapter toggling is restricted for ordinary apps on modern Android.
+                runCatching {
+                    ctx.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
                 c.interact()
             }
         }
