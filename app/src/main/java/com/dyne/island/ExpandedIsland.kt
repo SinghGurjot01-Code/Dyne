@@ -2,6 +2,9 @@ package com.dyne.island
 
 import android.graphics.Bitmap
 import android.media.AudioManager
+import android.os.Build
+import android.content.Intent
+import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
@@ -330,20 +333,43 @@ private fun BluetoothPanel(e: IslandEvent.Bluetooth) {
 @Composable
 private fun IdlePanel(app: DyneApplication, s: DyneSettings, c: IslandController) {
     val torchOn by app.torch.isOn.collectAsState()
+    val ctx = LocalContext.current
     Spacer(Modifier.height(8.dp))
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (Feature.TORCH in s.features && app.torch.available) {
-            RoundBtn(DyneIcons.Torch, if (torchOn) Yellow else Color(0xFF26262C), if (torchOn) Color.Black else Color.White, 44.dp) {
+            RoundBtn(DyneIcons.Torch, if (torchOn) Yellow else Color(0xFF26262C), if (torchOn) Color.Black else Color.White, 42.dp) {
                 app.torch.toggle(); c.interact()
             }
         }
+        if (Feature.VOLUME in s.features) {
+            RoundBtn(DyneIcons.Volume, Color(0xFF26262C), Color.White, 42.dp) {
+                runCatching {
+                    ctx.getSystemService(AudioManager::class.java)
+                        .adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI)
+                }
+                c.interact()
+            }
+        }
+        if (Feature.BLUETOOTH in s.features) {
+            RoundBtn(DyneIcons.Bluetooth, Color(0xFF26262C), Blue, 42.dp) {
+                val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    Intent(Settings.Panel.ACTION_BLUETOOTH)
+                } else Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+                runCatching { ctx.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                c.interact()
+            }
+        }
         if (Feature.TIMER in s.features) {
-            listOf(1 to "1 min", 5 to "5 min", 10 to "10 min").forEach { (m, label) ->
+            listOf(1 to "1m", 5 to "5m", 10 to "10m").forEach { (m, label) ->
                 Box(
                     Modifier.clip(RoundedCornerShape(22.dp)).background(Color(0xFF26262C))
                         .clickable { app.timer.start(m * 60_000L); c.collapse() }
-                        .padding(horizontal = 14.dp, vertical = 11.dp)
-                ) { Text(label, color = Color.White, fontSize = 13.sp) }
+                        .padding(horizontal = 11.dp, vertical = 11.dp)
+                ) { Text(label, color = Color.White, fontSize = 12.sp) }
             }
         }
     }
