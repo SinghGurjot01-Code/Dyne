@@ -34,15 +34,15 @@ Requirements: Android Studio (Narwhal or newer), JDK 17, Android SDK 36.
 
 Cutout position comes from `Display.getCutout()` (`DisplayCutout.boundingRects`) and the window is centred on the cutout's real centre; there is no hard-coded coordinate. If no cutout is reported, it falls back to top-centre and you can nudge it in settings. The island is hidden in landscape and while the screen is off.
 
-**Priority.** Calls > timer done > timer > music > torch > charging > notifications > Bluetooth > volume. Deliberate deviation from a strict ladder: short-lived events (notification, charging plug-in, Bluetooth, volume, timer done) are shown for their timeout even over music/timer, otherwise a notification could never appear while music plays. Calls always win. Swipe sideways on the island to cycle through all active events; swipe up to dismiss a temporary one.
+**Priority.** Calls > timer done > timer > music > torch > charging > notifications > Bluetooth > volume. Deliberate deviation from a strict ladder: short-lived events (notification, charging plug-in, Bluetooth, volume, timer done) are shown for their timeout even over music/timer, otherwise a notification could never appear while music plays. Calls always win. Tap the compact island to expand it; tap outside to collapse. Swipe sideways on the expanded island to cycle through active events; swipe up to dismiss a temporary one. The idle expanded panel includes torch, volume, Bluetooth settings and timer shortcuts. Appearance sliders trigger a brief blue preview so size and position can be judged against dark wallpapers.
 
 ## Status of every feature
 
-**Build status:** the GitHub Actions debug APK build has passed. The app has not yet been installed or exercised on a physical Android device, so runtime behaviour still needs device testing.
+**Build status:** version 1.1.0 includes reliable compact-window tap handling, a temporary blue appearance preview during size/position adjustments, and idle quick actions for torch, volume, Bluetooth settings and timer. The app still requires physical-device testing.
 
 | Feature | Status | Test |
 |---|---|---|
-| Overlay, cutout positioning, expand/collapse, tap outside | Implemented; device test pending | Island sits on the camera; tap expands; tap elsewhere collapses; apps underneath stay usable |
+| Overlay, cutout positioning, tap-to-expand, tap-outside collapse, swipe gestures | Updated in 1.1.0; device test pending | Tap compact pill; tap outside; swipe across expanded pill; swipe up to dismiss |
 | Music (artwork, progress, play/pause/next/prev) | Implemented, not tested | Play in Spotify/YouTube Music |
 | Notifications (app filter, dedupe, dismiss, lock-screen privacy) | Implemented, not tested | Send a WhatsApp message |
 | Charging (plug/unplug/full) | Implemented, not tested | Plug in a charger |
@@ -51,7 +51,7 @@ Cutout position comes from `Display.getCutout()` (`DisplayCutout.boundingRects`)
 | Torch (toggle, state sync with quick settings) | Implemented, not tested | Toggle from island and from the shade |
 | Volume | Implemented, not tested | Press volume keys |
 | Bluetooth (on/off, connect/disconnect, name) | Implemented, not tested | Connect earbuds |
-| Settings, permission status, deep links | Implemented, not tested | |
+| Settings, permission status, deep links and high-contrast live appearance preview | Updated in 1.1.0; device test pending | Adjust size/position sliders; blue preview appears briefly |
 
 **Not implemented, because of Android limits**
 - Rapid-charging label / wattage: Android has no reliable public flag, so Dyne does not guess.
