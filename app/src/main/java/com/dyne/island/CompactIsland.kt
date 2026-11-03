@@ -52,19 +52,19 @@ val Dim = Color(0xFF9A9AA2)
 @Composable
 fun CompactContent(event: IslandEvent?, charging: Boolean, s: DyneSettings, g: com.dyne.overlay.IslandGeometry) {
     Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.width(s.compactExtra.dp).fillMaxHeight().padding(start = 12.dp), Alignment.CenterStart) {
-            CompactLeft(event, charging)
+        Box(Modifier.width(s.compactExtra.dp).fillMaxHeight().padding(start = 2.dp), Alignment.CenterStart) {
+            if (s.compactExtra >= 16) CompactLeft(event, charging)
         }
         Spacer(Modifier.width(g.cutoutW.dp))
-        Box(Modifier.width(s.compactExtra.dp).fillMaxHeight().padding(end = 12.dp), Alignment.CenterEnd) {
-            CompactRight(event, charging, s.animation)
+        Box(Modifier.width(s.compactExtra.dp).fillMaxHeight().padding(end = 2.dp), Alignment.CenterEnd) {
+            if (s.compactExtra >= 30) CompactRight(event, charging, s.animation)
         }
     }
 }
 
 @Composable
 private fun Glyph(icon: ImageVector, tint: Color) =
-    Icon(icon, null, tint = tint, modifier = Modifier.size(16.dp))
+    Icon(icon, null, tint = tint, modifier = Modifier.size(14.dp))
 
 @Composable
 private fun CompactLeft(e: IslandEvent?, charging: Boolean) {
