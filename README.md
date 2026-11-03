@@ -38,11 +38,11 @@ Cutout position comes from `Display.getCutout()` (`DisplayCutout.boundingRects`)
 
 ## Status of every feature
 
-**Nothing has been compiled or run yet.** This was written without an Android SDK, emulator or device available, so every item below is *implemented but not compiled and not device-tested*. Expect a handful of compile errors on first sync (typos, missing imports); fix those first, then run the checks below.
+**Build status:** the GitHub Actions debug APK build has passed. The app has not yet been installed or exercised on a physical Android device, so runtime behaviour still needs device testing.
 
 | Feature | Status | Test |
 |---|---|---|
-| Overlay, cutout positioning, expand/collapse, tap outside | Implemented, not tested | Island sits on the camera; tap expands; tap elsewhere collapses; apps underneath stay usable |
+| Overlay, cutout positioning, expand/collapse, tap outside | Implemented; device test pending | Island sits on the camera; tap expands; tap elsewhere collapses; apps underneath stay usable |
 | Music (artwork, progress, play/pause/next/prev) | Implemented, not tested | Play in Spotify/YouTube Music |
 | Notifications (app filter, dedupe, dismiss, lock-screen privacy) | Implemented, not tested | Send a WhatsApp message |
 | Charging (plug/unplug/full) | Implemented, not tested | Plug in a charger |
