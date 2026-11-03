@@ -75,41 +75,21 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
                     .islandSize(w, h)
                     .graphicsLayer { shape = RoundedCornerShape(radius.value); clip = true }
                     .background(islandColor)
-                    .clickable {
-                        if (!expanded) controller.expandManual()
-                        else {
-                            when (val active = event) {
-                                is com.dyne.events.IslandEvent.Notification -> runCatching { active.intent?.send() }
-                                is com.dyne.events.IslandEvent.Music -> {
-                                    val session = active.controller.sessionActivity
-                                    val launched = runCatching { session?.send(); session != null }.getOrDefault(false)
-                                    if (!launched) runCatching {
-                                        context.packageManager.getLaunchIntentForPackage(active.controller.packageName)?.let {
-                                            context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                        }
+                    .pointerInput(expanded) {
+                        if (expanded) {
+                            var dx = 0f
+                            var dy = 0f
+                            detectDragGestures(
+                                onDragStart = { dx = 0f; dy = 0f },
+                                onDragEnd = {
+                                    when {
+                                        dy < -48f -> controller.collapse()
+                                        abs(dx) > 72f -> controller.cycle(if (dx < 0) 1 else -1)
                                     }
-                                }
-                                is com.dyne.events.IslandEvent.Bluetooth -> runCatching {
-                                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                }
-                                else -> controller.interact()
-                            }
-                            controller.collapse()
+                                },
+                                onDrag = { change, amount -> change.consume(); dx += amount.x; dy += amount.y }
+                            )
                         }
-                    }
-                    .pointerInput(Unit) {
-                        var dx = 0f
-                        var dy = 0f
-                        detectDragGestures(
-                            onDragStart = { dx = 0f; dy = 0f },
-                            onDragEnd = {
-                                when {
-                                    dy < -48f -> controller.collapse()
-                                    abs(dx) > 72f -> controller.cycle(if (dx < 0) 1 else -1)
-                                }
-                            },
-                            onDrag = { change, amount -> change.consume(); dx += amount.x; dy += amount.y }
-                        )
                     }
             ) {
                 AnimatedContent(
