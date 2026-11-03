@@ -1,5 +1,10 @@
 package com.dyne.overlay
 
+/** Clamp expanded content to the display while preserving a small outer safety margin. */
+fun maxExpandedIslandWidth(requestedWidthDp: Float, screenWidthDp: Float): Float =
+    if (screenWidthDp > 0f) minOf(requestedWidthDp, (screenWidthDp - 28f).coerceAtLeast(1f))
+    else requestedWidthDp
+
 /** Camera cutout size in dp, as measured from the DisplayCutout. */
 data class IslandGeometry(
     val cutoutW: Float,
