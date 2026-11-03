@@ -15,6 +15,8 @@
     <!-- Call state -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- Required to change system media/ring volume from the island slider. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Timer finished -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
