@@ -42,7 +42,7 @@ Cutout position comes from `Display.getCutout()` (`DisplayCutout.boundingRects`)
 
 | Feature | Status | Test |
 |---|---|---|
-| Overlay, cutout positioning, tap-to-expand, tap-outside collapse, swipe gestures | Updated in 1.1.0; device test pending | Tap compact pill; tap outside; swipe across expanded pill; swipe up to dismiss |
+| Overlay, cutout positioning, tap-to-expand, tap-outside collapse, swipe gestures | Updated in 1.2.0; device test pending | Tap compact pill; tap outside; swipe across expanded pill; swipe up to dismiss |
 | Music (artwork, progress, play/pause/next/prev) | Implemented, not tested | Play in Spotify/YouTube Music |
 | Notifications (app filter, dedupe, dismiss, lock-screen privacy) | Implemented, not tested | Send a WhatsApp message |
 | Charging (plug/unplug/full) | Implemented, not tested | Plug in a charger |
@@ -92,4 +92,4 @@ Dyne reads the device's actual display bounds, density and DisplayCutout rectang
 
 ## Verification
 
-GitHub Actions runs JVM unit tests before assembling the debug APK. These tests cover responsive width clamping. A successful CI build verifies compilation and those automated tests; it does **not** prove touch behaviour, text rendering, battery impact or every permission flow on a physical Motorola phone. Those require a real-device test pass.
+GitHub Actions runs JVM unit tests before assembling the debug APK. Version 1.2.0 adds tests for display-width clamping and updates the overlay window and Compose content to use the detected screen width. A successful CI build verifies compilation and those automated tests; it does **not** prove touch behaviour, text rendering, battery impact or every permission flow on a physical Motorola phone. Those require a real-device test pass.
