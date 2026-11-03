@@ -5,6 +5,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.os.Build
+import android.os.SystemClock
 import android.view.Display
 import android.view.Gravity
 import android.view.MotionEvent
@@ -29,8 +30,20 @@ import kotlinx.coroutines.launch
 
 class TouchRootLayout(ctx: Context) : FrameLayout(ctx) {
     var onOutside: (() -> Unit)? = null
+    var isCompact: (() -> Boolean)? = null
+    var onCompactTap: (() -> Unit)? = null
+
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_OUTSIDE) { onOutside?.invoke(); return true }
+        if (ev.action == MotionEvent.ACTION_OUTSIDE) {
+            onOutside?.invoke()
+            return true
+        }
+        // The compact island has no child controls. Handle its tap at the window root so
+        // expansion does not depend on Compose pointer hit-testing in an overlay window.
+        if (isCompact?.invoke() == true) {
+            if (ev.action == MotionEvent.ACTION_UP) onCompactTap?.invoke()
+            return true
+        }
         return super.dispatchTouchEvent(ev)
     }
 }
@@ -76,6 +89,8 @@ class OverlayWindowManager(
         val rawGeo = raw ?: return
         val view = TouchRootLayout(context).apply {
             onOutside = { controller.collapse() }
+            isCompact = { !controller.expanded.value }
+            onCompactTap = { controller.expandManual() }
             setViewTreeLifecycleOwner(owner as LifecycleOwner)
             setViewTreeSavedStateRegistryOwner(owner)
             addView(ComposeView(context).apply {
@@ -140,13 +155,18 @@ class OverlayWindowManager(
     private fun startSizing() {
         sizingJob?.cancel()
         sizingJob = scope.launch {
-            combine(controller.expanded, controller.display, app.settings.flow, geometry) { _, _, _, _ -> }
-                .collect {
-                    val (w, h) = targetDp()
-                    resizeJob?.cancel()
-                    if (w >= curW && h >= curH || app.settings.current.animation == 0) applySize(w, h)
-                    else resizeJob = scope.launch { delay(520); applySize(w, h) } // wait for collapse to settle
+            combine(controller.expanded, controller.display, app.settings.flow, geometry) { expanded, _, settings, _ ->
+                Triple(expanded, settings.previewUntilElapsed, settings.animation)
+            }.collect { (expanded, previewUntil, animation) ->
+                val (w, h) = targetDp()
+                resizeJob?.cancel()
+                val adjustingAppearance = previewUntil > SystemClock.elapsedRealtime()
+                if (expanded || adjustingAppearance || (w >= curW && h >= curH) || animation == 0) {
+                    applySize(w, h)
+                } else {
+                    resizeJob = scope.launch { delay(520); applySize(w, h) } // let the collapse animation settle
                 }
+            }
         }
     }
 
