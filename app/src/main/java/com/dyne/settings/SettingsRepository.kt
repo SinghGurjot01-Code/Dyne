@@ -1,6 +1,7 @@
 package com.dyne.settings
 
 import android.content.Context
+import android.os.SystemClock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -32,7 +33,9 @@ data class DyneSettings(
     val offsetX: Int = 0,
     val offsetY: Int = 0,
     val features: Set<Feature> = Feature.values().toSet(),
-    val blockedPackages: Set<String> = emptySet()
+    val blockedPackages: Set<String> = emptySet(),
+    /** Ephemeral high-contrast preview while appearance sliders are being adjusted. */
+    val previewUntilElapsed: Long = 0L
 )
 
 class SettingsRepository(context: Context) {
@@ -43,8 +46,21 @@ class SettingsRepository(context: Context) {
 
     @Synchronized
     fun update(transform: (DyneSettings) -> DyneSettings) {
-        val n = transform(_flow.value)
-        if (n == _flow.value) return
+        val old = _flow.value
+        val requested = transform(old)
+        if (requested == old) return
+        val appearanceChanged =
+            requested.expandedWidth != old.expandedWidth ||
+            requested.expandedHeight != old.expandedHeight ||
+            requested.compactExtra != old.compactExtra ||
+            requested.compactExtraH != old.compactExtraH ||
+            requested.cornerRadius != old.cornerRadius ||
+            requested.offsetX != old.offsetX ||
+            requested.offsetY != old.offsetY
+        val n = requested.copy(
+            previewUntilElapsed = if (appearanceChanged) SystemClock.elapsedRealtime() + 1100L
+            else old.previewUntilElapsed
+        )
         save(n)
         _flow.value = n
     }
