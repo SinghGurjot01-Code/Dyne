@@ -2,8 +2,12 @@ name: Build Dyne APK
 
 on:
   push:
+    branches: [main]
     paths:
-      - 'Dyne.zip'
+      - 'app/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
       - '.github/workflows/build.yml'
   workflow_dispatch:
 
@@ -30,45 +34,18 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Extract Dyne source
-        run: |
-          test -f Dyne.zip
-          unzip -q Dyne.zip -d extracted
-          find extracted -maxdepth 3 -type f | head -100
-
-      - name: Inspect Kotlin imports
-        run: |
-          find extracted -name 'ExpandedIsland.kt' -o -name 'IslandAnimations.kt' | while read f; do
-            echo "===== $f ====="
-            sed -n '1,45p' "$f"
-            grep -n -E 'weight|VisibilityThreshold' "$f" | head -30
-          done
-
-      - name: Locate project
-        id: project
-        run: |
-          PROJECT_FILE="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) | head -1)"
-          if [ -z "$PROJECT_FILE" ]; then
-            echo "No Gradle Android project found in Dyne.zip"
-            exit 1
-          fi
-          PROJECT_DIR="$(dirname "$PROJECT_FILE")"
-          echo "dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-          echo "Building project at $PROJECT_DIR"
-
       - name: Set up Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
       - name: Build debug APK
-        working-directory: ${{ steps.project.outputs.dir }}
         run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dyne-debug-apk
-          path: ${{ steps.project.outputs.dir }}/app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
