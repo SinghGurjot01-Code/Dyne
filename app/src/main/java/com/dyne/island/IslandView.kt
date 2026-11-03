@@ -32,6 +32,7 @@ import androidx.compose.runtime.produceState
 import com.dyne.DyneApplication
 import com.dyne.overlay.IslandController
 import com.dyne.overlay.IslandGeometry
+import com.dyne.overlay.maxExpandedIslandWidth
 import com.dyne.settings.DyneSettings
 import com.dyne.ui.theme.DyneTheme
 import kotlin.math.abs
@@ -59,8 +60,7 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
 
         val compactW = g.cutoutW + s.compactExtra * 2
         val compactH = g.cutoutH + s.compactExtraH
-        val maxExpandedWidth = if (g.screenW > 0f) (g.screenW - 24f).coerceAtLeast(1f) else s.expandedWidth.toFloat()
-        val targetW = if (expanded) min(s.expandedWidth.toFloat(), maxExpandedWidth) else compactW
+        val targetW = if (expanded) maxExpandedIslandWidth(s.expandedWidth.toFloat(), g.screenW) else compactW
         val targetH = if (expanded) s.expandedHeight * heightFraction(event?.type) else compactH
         val spec = dpSpec(s.animation)
         val w = animateDpAsState(targetW.dp, spec, label = "w")
