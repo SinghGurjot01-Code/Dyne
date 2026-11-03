@@ -28,7 +28,7 @@ fun fadeMs(mode: Int, base: Int) = if (mode == 0) 0 else if (mode == 1) base / 2
 
 /** Fraction of the configured expanded height each content type uses. */
 fun heightFraction(type: EventType?): Float = when (type) {
-    EventType.MUSIC -> 1.38f
+    EventType.MUSIC -> 1.15f
     EventType.CALL_INCOMING -> 1.12f
     EventType.CALL_ACTIVE -> 0.92f
     EventType.TIMER, EventType.NOTIFICATION -> 0.8f
