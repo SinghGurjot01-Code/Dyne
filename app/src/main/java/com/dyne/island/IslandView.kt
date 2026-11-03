@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import android.os.SystemClock
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
@@ -40,6 +43,7 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
         val expanded by controller.expanded.collectAsState()
         val event by controller.display.collectAsState()
         val charging by app.charging.isCharging.collectAsState()
+        val context = LocalContext.current
         val preview by produceState(initialValue = false, key1 = s.previewUntilElapsed) {
             if (s.previewUntilElapsed > 0L) {
                 value = true
@@ -55,7 +59,8 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
 
         val compactW = g.cutoutW + s.compactExtra * 2
         val compactH = g.cutoutH + s.compactExtraH
-        val targetW = if (expanded) s.expandedWidth.toFloat() else compactW
+        val maxExpandedWidth = if (g.screenW > 0f) (g.screenW - 24f).coerceAtLeast(1f) else s.expandedWidth.toFloat()
+        val targetW = if (expanded) min(s.expandedWidth.toFloat(), maxExpandedWidth) else compactW
         val targetH = if (expanded) s.expandedHeight * heightFraction(event?.type) else compactH
         val spec = dpSpec(s.animation)
         val w = animateDpAsState(targetW.dp, spec, label = "w")
@@ -70,7 +75,28 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
                     .islandSize(w, h)
                     .graphicsLayer { shape = RoundedCornerShape(radius.value); clip = true }
                     .background(islandColor)
-                    .clickable { if (!expanded) controller.expandManual() else controller.interact() }
+                    .clickable {
+                        if (!expanded) controller.expandManual()
+                        else {
+                            when (val active = event) {
+                                is com.dyne.events.IslandEvent.Notification -> runCatching { active.intent?.send() }
+                                is com.dyne.events.IslandEvent.Music -> {
+                                    val session = active.controller.sessionActivity
+                                    val launched = runCatching { session?.send(); session != null }.getOrDefault(false)
+                                    if (!launched) runCatching {
+                                        context.packageManager.getLaunchIntentForPackage(active.controller.packageName)?.let {
+                                            context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                        }
+                                    }
+                                }
+                                is com.dyne.events.IslandEvent.Bluetooth -> runCatching {
+                                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                }
+                                else -> controller.interact()
+                            }
+                            controller.collapse()
+                        }
+                    }
                     .pointerInput(Unit) {
                         var dx = 0f
                         var dy = 0f
@@ -78,7 +104,7 @@ fun IslandRoot(controller: IslandController, app: DyneApplication, s: DyneSettin
                             onDragStart = { dx = 0f; dy = 0f },
                             onDragEnd = {
                                 when {
-                                    dy < -48f -> controller.dismiss()
+                                    dy < -48f -> controller.collapse()
                                     abs(dx) > 72f -> controller.cycle(if (dx < 0) 1 else -1)
                                 }
                             },
