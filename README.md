@@ -65,3 +65,31 @@ Cutout position comes from `Display.getCutout()` (`DisplayCutout.boundingRects`)
 ## Privacy
 
 No INTERNET permission, no analytics, no ads. Notification/media/call data is read only to draw the island and is held in memory only. Each sensitive permission is requested only from the screen of the feature that needs it, with the reason shown.
+
+
+## Dynamic Island parity review
+
+This is a behaviour comparison against Apple's public Live Activities / Dynamic Island guidance, not an attempt to copy Apple's private system implementation.
+
+| Apple behaviour | Dyne status | Android implementation / limitation |
+|---|---|---|
+| Compact leading + trailing presentation around the camera | Implemented | Left and right compact regions are arranged around the detected display cutout |
+| Minimal presentation for concurrent activities | Partial | Dyne prioritises active events and lets users swipe between them; it does not yet draw Apple's separate detached minimal bubble |
+| Expanded presentation | Implemented | Event-specific expanded panels for music, calls, timers, notifications, charging, torch, volume and Bluetooth |
+| Tap an activity to open its related app | Partial | Notification and music expanded panels can open their source app; compact tap expands the island for discoverability |
+| Touch and hold to expand | Partial | Compact tap expands; long-press-specific distinction is not yet implemented |
+| Swipe up to collapse | Implemented | Swipe up collapses without dismissing the underlying notification/activity |
+| Switch between concurrent activities | Implemented | Horizontal swipe cycles the active event list |
+| Live, frequently updated activity data | Partial | Uses Android media sessions, notification listener, phone state, battery broadcasts, timer, torch, volume and Bluetooth broadcasts; there is no universal Android API for every third-party Live Activity |
+| Lock Screen / StandBy presentation | Not available to this overlay | Android does not allow this ordinary application overlay to draw over the secure keyguard |
+| System-owned activities such as Face ID, Apple Pay, AirDrop and iOS navigation | Not available to third-party Android overlays | Android exposes different APIs and permissions; Dyne cannot reproduce Apple's privileged system indicators |
+| Adaptive layout for smaller available widths | Implemented | Expanded width is clamped using runtime display dimensions; text uses bounded lines and ellipsis |
+| Camera cutout alignment | Implemented | Reads Android display cutout geometry at runtime instead of hardcoding an iPhone or Motorola coordinate |
+
+## Motorola display adaptation
+
+Dyne reads the device's actual display bounds, density and DisplayCutout rectangle at runtime. This is deliberate: Motorola publishes screen dimensions, but the exact safe insets and punch-hole rectangle can vary with software, display scaling and system UI configuration. The overlay therefore does not assume a fixed camera-hole pixel size. Expanded width is clamped to the detected display width with a safety margin.
+
+## Verification
+
+GitHub Actions runs JVM unit tests before assembling the debug APK. These tests cover responsive width clamping. A successful CI build verifies compilation and those automated tests; it does **not** prove touch behaviour, text rendering, battery impact or every permission flow on a physical Motorola phone. Those require a real-device test pass.
