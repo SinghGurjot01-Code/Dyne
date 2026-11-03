@@ -129,7 +129,7 @@ class MusicMonitor(private val ctx: Context, private val events: IslandEventMana
         )
         pauseJob?.cancel()
         if (!playing) pauseJob = ctx.dyne.appScope.launch {
-            delay(30_000) // paused for a while: collapse the music event
+            delay(8_000) // paused: return to the camera-only pill promptly
             events.clear(EventType.MUSIC)
         }
     }
