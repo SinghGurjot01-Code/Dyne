@@ -20,7 +20,7 @@ import kotlinx.coroutines.delay
 fun dpSpec(mode: Int): FiniteAnimationSpec<Dp> = when (mode) {
     0 -> snap()
     1 -> tween(200, easing = FastOutSlowInEasing)
-    else -> spring(dampingRatio = 0.78f, stiffness = 420f, visibilityThreshold = Dp.VisibilityThreshold)
+    else -> spring(dampingRatio = 0.78f, stiffness = 420f, visibilityThreshold = 0.5.dp)
 }
 
 fun fadeMs(mode: Int, base: Int) = if (mode == 0) 0 else if (mode == 1) base / 2 else base
